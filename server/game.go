@@ -161,22 +161,8 @@ func (g *Game) EndGame() {
 func (g *Game) GamePreprocess() {
 	g.MoveTime = 5000000000
 	g.SyllableCounter = 0
-	g.Syllables = append(g.Syllables, Syllable{
-		Syllable: "фр",
-		Words:    map[string]bool{"француз": true, "фрукт": true, "француженка": true, "фрак": true},
-	})
-	g.Syllables = append(g.Syllables, Syllable{
-		Syllable: "сг",
-		Words:    map[string]bool{"сговор": true, "сгущенка": true, "сгон": true},
-	})
-	g.Syllables = append(g.Syllables, Syllable{
-		Syllable: "ща",
-		Words:    map[string]bool{"чаща": true, "гуща": true, "пища": true, "роща": true},
-	})
-	g.Syllables = append(g.Syllables, Syllable{
-		Syllable: "по",
-		Words:    map[string]bool{"подруга": true, "помощь": true, "поместье": true, "полынь": true},
-	})
+
+	g.Syllables = getSyllables()
 
 	g.ActivePlayers = map[string]Player{}
 	for key, value := range g.Players {
@@ -256,16 +242,12 @@ func (g *Game) GameProcess() {
 
 	for {
 		if len(g.ActivePlayers) == 0 {
-			// объявляем ничью, шлем оповещение о ничьей
-			// подсчет очков
 			//g.EndGame()
 			msg := Message.constructTieMessage(Message{})
 			g.messages <- msg
 			return
 		}
 		if len(g.ActivePlayers) == 1 {
-			// объявляем победителя, шлем сообщение о победе чела
-			// подсчет очков
 			msg := Message.constructWinnerMessage(Message{}, g)
 			g.messages <- msg
 			//g.EndGame()
@@ -275,7 +257,3 @@ func (g *Game) GameProcess() {
 		//g.ActivePlayers = g.Players
 	}
 }
-
-//func (g *Game) DecreaseMoveTime() {
-//	g.MoveTime -= 100000000
-//}

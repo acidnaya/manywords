@@ -31,6 +31,10 @@ type User struct {
 }
 
 func main() {
+	kr := getSyllables()
+	for _, k := range kr {
+		k.PrintSyllable()
+	}
 	//Create addr
 	addr, err := net.ResolveTCPAddr(CNET, CHOST+":"+CPORT)
 	handleError(err)
