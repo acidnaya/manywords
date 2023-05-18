@@ -100,10 +100,6 @@ func (g *Game) broadcast() {
 			fmt.Printf("Error in Game.broadcast while serializing!\n")
 			break
 		}
-		//if message == nil {
-		//	fmt.Printf("Channel is empty!\n")
-		//	break
-		//}
 		for _, player := range g.Players {
 			if !player.IsReceiving {
 				continue
@@ -139,10 +135,10 @@ func (g *Game) CloseConnection(player Player) {
 
 func (g *Game) StartGame() {
 	g.GameHasStarted = true
+	manager.RemoveGame(g.GameID)
 	fmt.Printf("Game #%d has started\n", g.GameID)
 	g.GamePreprocess()
 	fmt.Printf("Preprocess ended\n")
-	//go g.broadcast() // from here to manager
 	g.GameProcess()
 	g.EndGame()
 }
@@ -179,7 +175,6 @@ func (g *Game) ValidateMove(move string) bool {
 		fmt.Printf("Был сделан НЕВЕРНЫЙ ход: %s!\n", move)
 	}
 	return ok
-	// return true
 }
 
 func (g *Game) UpdatePlayerKeys() {

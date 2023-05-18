@@ -19,7 +19,7 @@ func (p Player) GetMove() (msg *Message) {
 	case msg := <-p.messages:
 		fmt.Println("Ход был отправлен\n")
 		return msg
-	case <-time.After(6 * time.Second):
+	case <-time.After(5 * time.Second):
 		fmt.Println("Ход не был отправлен\n")
 		return Message.constructEmptyMove(Message{}, p.ID)
 	}

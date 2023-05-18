@@ -8,22 +8,13 @@
 import Foundation
 import UIKit
 
-final class MainMenuController: UIViewController, NamedDelegate {
-	func setName(name: String) {
-		userName = name
-	}
-	
+final class MainMenuController: UIViewController {
 	private var fastGameButton = Button()
 	private var createGameButton = Button()
 	private var joinGameButton = Button()
 	private var rulesButton = Button()
 	private var statisticsButton = Button()
 	private var settingsButton = Button()
-//	private var horisontalButtonStack = UIStackView()
-//	private var verticalButtonStack = UIStackView()
-	private var userName = UIDevice.current.identifierForVendor?.uuidString.components(separatedBy: "-")[0]
-	private var gamesPlayed = 0
-	private var wins = 0
 	
 	private var name = UILabel()
 	
@@ -131,9 +122,6 @@ final class MainMenuController: UIViewController, NamedDelegate {
 	
 	@objc private func fastGameButtonPressed() {
 		let game : GameController = GameController()
-		game.initn(id: userName ?? "default value")
-		gamesPlayed += 1
-		//wins += 1
 		navigationController?.pushViewController(game, animated: true)
 	}
 	
@@ -152,13 +140,11 @@ final class MainMenuController: UIViewController, NamedDelegate {
 	
 	@objc private func statisticsButtonPressed() {
 		let rate = RateViewController()
-		rate.initn(played: gamesPlayed, wins: wins)
 		navigationController?.pushViewController(rate, animated: true)
 	}
 	
 	@objc private func settingsButtonPressed() {
 		let settings = SettingsViewController()
-		settings.initn(nd: self, username: userName ?? "default value")
 		navigationController?.pushViewController(settings, animated: true)
 	}
 }

@@ -8,22 +8,12 @@
 import Foundation
 import UIKit
 
-protocol NamedDelegate: AnyObject {
-	func setName(name: String)
-}
-
 final class SettingsViewController : UIViewController, GameRoomDelegate {
 	var userName = Label()
 	var textView = UITextView()
 	var button = Button()
 	var messageLabel = Label()
 	let gameRoom = GameRoom()
-	weak var delegate: NamedDelegate?
-	
-	func initn(nd: NamedDelegate, username: String) {
-		delegate = nd
-		userName.text = username
-	}
 	
 	func setupButton() {
 		button.setTitle("Изменить имя", for: .normal)
@@ -32,18 +22,13 @@ final class SettingsViewController : UIViewController, GameRoomDelegate {
 	}
 	
 	@objc func buttonPressed() {
-		if textView.text != "игрок1" {
-			updateName()
-			print("update")
-		} else {
-			declineName()
-			print("decline")
-//			updateName()
-		}
+		gameRoom.send(message: Message(e: "change_name", p: userName.text ?? " ", g: "", o: "", s: "", a: textView.text, ms: "", t: "", f: ""))
 	}
 	
 	func setupLabel() {
 		messageLabel.text = "             "
+		userName.text = UserDefaults.standard.string(forKey: DefaultsKeys.username)
+		print("имя = " + UserDefaults.standard.string(forKey: DefaultsKeys.username)!)
 	}
 	
 	private func setupStack() {
@@ -52,11 +37,8 @@ final class SettingsViewController : UIViewController, GameRoomDelegate {
 		setupLabel()
 		
 		let verticalStack = UIStackView(arrangedSubviews: [userName, textView, button, messageLabel])
-
 		verticalStack.axis = NSLayoutConstraint.Axis.vertical
-		
 		verticalStack.distribution = UIStackView.Distribution.fillProportionally
-	
 		verticalStack.spacing = Theme.Constants.ButtonSpacing * 2
 		
 		self.view.addSubview(verticalStack)
@@ -67,7 +49,6 @@ final class SettingsViewController : UIViewController, GameRoomDelegate {
 	func setupTextView() {
 		textView.text = ""
 		textView.font = .systemFont(ofSize: Theme.Constants.FontSize, weight: .medium)
-		//setWidth(300)
 		textView.setHeight(Theme.Constants.ButtonHeight)
 		textView.layer.cornerRadius = Theme.Constants.CornerRadius
 		textView.backgroundColor = Theme.Colors.ButtonColor
@@ -79,26 +60,23 @@ final class SettingsViewController : UIViewController, GameRoomDelegate {
 	private func setupView() {
 		view.backgroundColor = Theme.Colors.BackgroundColor
 		setupStack()
-		//gameRoom.initn(gc: self)
 	}
 	
 	func received(message: Message) {
 		switch message.EventType {
-		case "name":
-			if message.MoveStatus == "correct" {
-				print("Имя было изменено")
-			} else {
-				print("Имя НЕ было изменено")
-			}
+		case "ok":
+			updateName()
+		case "error":
+			declineName()
 		default:
-			print("не удалось распознать команду")
+			print("Не удалось распознать команду")
 		}
 	}
 	
 	func updateName() {
-		delegate?.setName(name: textView.text)
 		userName.text = textView.text
 		textView.text = ""
+		UserDefaults.standard.set(userName.text, forKey: DefaultsKeys.username)
 		messageLabel.text = "Имя изменено"
 	}
 	
@@ -110,11 +88,12 @@ final class SettingsViewController : UIViewController, GameRoomDelegate {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		gameRoom.initn(gc: self)
+		gameRoom.setupNetworkCommunication()
 		setupView()
 		let newBackButton = UIBarButtonItem(title: "Назад", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.backAction(sender:)))
 		newBackButton.tintColor = Theme.Colors.AccentColor
 		self.navigationItem.leftBarButtonItem = newBackButton
-		//self.title = "C"
 	}
 	
 	@objc func backAction(sender: UIBarButtonItem) {

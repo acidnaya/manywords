@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 )
 
 var (
@@ -16,69 +15,42 @@ var (
 	}
 )
 
-// MSG is used in transporting individual messages
-type MSG struct {
-	username string
-	msg      string
-	isLast   bool
-
-	conn *net.TCPConn
-}
-
-// User contains username
-type User struct {
-	Iam string `json:"iam,omitempty"`
-}
-
 func main() {
-	kr := getSyllables()
-	for _, k := range kr {
-		k.PrintSyllable()
-	}
-	//Create addr
 	addr, err := net.ResolveTCPAddr(CNET, CHOST+":"+CPORT)
 	handleError(err)
-
-	//Create listener
 	tcpListener, err := net.ListenTCP(CNET, addr)
 	handleError(err)
 
 	defer func(tcpListener *net.TCPListener) {
 		err := tcpListener.Close()
 		if err != nil {
-			handleError(err) // ТУТ ПЕРЕДЕЛАЛА И КАКАЯ_ТО ХУЕТА ХУЕТ
+			handleError(err)
 		}
 	}(tcpListener)
 
-	//Create broadcaster
-	var broadcaster = make(chan *MSG, 1)
-	defer close(broadcaster)
 	c := &Connections{
 		conns: make(map[string]*net.TCPConn),
 	}
-	//go c.broadcast(broadcaster)
 
 	fmt.Println("Listening on " + CHOST + ":" + CPORT)
 	for {
-		// Listen for an incoming connection.
 		conn, err := tcpListener.AcceptTCP()
 		handleError(err)
 		c.New(conn.RemoteAddr().String(), conn)
-
-		// Handle connections in a new goroutine.
-		go handleRequest(conn, broadcaster)
+		go handleRequest(conn)
 	}
 }
 
-func handleRequest(conn *net.TCPConn, messages chan *MSG) {
-	defer func(conn *net.TCPConn) {
-		//err := conn.Close()
-		//if err != nil {
-		//	handleError(err)
-		//}
-		fmt.Println("Close connection tipa")
-	}(conn)
+func CloseConnection(conn *net.TCPConn) {
+	err := conn.Close()
+	if err != nil {
+		log.Println(err)
+		fmt.Printf("Error while closing connection!\n")
+	}
+}
 
+func handleRequest(conn *net.TCPConn) {
+	fmt.Printf("Handling connection!\n")
 	var message, err = DeserializeClientMsg(conn)
 	if err != nil {
 		return
@@ -93,18 +65,31 @@ func handleRequest(conn *net.TCPConn, messages chan *MSG) {
 	}
 
 	if message.EventType == "fast" {
-		fmt.Println("Finding fast game...")
 		manager.AddPlayer(player)
-		fmt.Println("Worked with manager...")
-	} else if message.EventType == "exit" {
 		return
+	} else if message.EventType == "change_name" {
+		status := changeID(message)
+		var message *Message
+		if status {
+			fmt.Printf("change name status is ok!\n")
+			message = Message.constructOkMessage(Message{})
+		} else {
+			fmt.Printf("change name status is not ok!\n")
+			message = Message.constructErrorMessage(Message{})
+		}
+		bytes, err := SerializeClientMsg(message)
+		if err != nil {
+			fmt.Printf("Error in server.HandleRequest while serializing!\n")
+			return
+		}
+		conn.Write(bytes)
 	}
-
+	CloseConnection(conn)
 }
 
 func handleError(err error) {
 	if err != nil {
 		log.Println(err)
-		os.Exit(1)
+		// os.Exit(1)
 	}
 }

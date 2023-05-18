@@ -13,34 +13,23 @@ protocol GameRoomDelegate: AnyObject {
 }
 
 class GameRoom: NSObject, MoveSenderDelegate {
-	//1
 	var inputStream: InputStream!
 	var outputStream: OutputStream!
 	var moveWasMade = [Bool](repeating: false, count: 100)
 	var moveCounter = 0
-	var deviceId = UIDevice.current.identifierForVendor?.uuidString.components(separatedBy: "-")[0]
-	
 	weak var delegate: GameRoomDelegate?
-	//weak var delegate: GameController?
-	
-	
-	//3
 	let maxReadLength = 4096
-	
 	let encoder = JSONEncoder()
 	let decoder = JSONDecoder()
+	let deviceId = UserDefaults.standard.string(forKey: DefaultsKeys.username)
 	
-	func initn(gc: GameRoomDelegate, id: String) {
+	func initn(gc: GameRoomDelegate) {
 		delegate = gc
-		deviceId = id
 	}
 	
 	func setupNetworkCommunication() {
-		// 1
 		var readStream: Unmanaged<CFReadStream>?
 		var writeStream: Unmanaged<CFWriteStream>?
-		
-		// 2
 		CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault,
 										   "localhost" as CFString,
 										   8080,
@@ -63,7 +52,6 @@ class GameRoom: NSObject, MoveSenderDelegate {
 		if (type == "move") {
 			moveWasMade[moveCounter] = true
 		}
-		//let deviceId = UIDevice.current.identifierForVendor?.uuidString.components(separatedBy: "-")[0]
 		let msg = Message(e: type, p: deviceId!, g: "", o: "", s: "", a: message, ms: "", t: "", f: "false")
 		send(message: msg)
 	}
@@ -85,7 +73,6 @@ class GameRoom: NSObject, MoveSenderDelegate {
 			}
 			outputStream.write(pointer, maxLength: data.count)
 		}
-		//print("Сообщение отправлено!")
 	}
 	
 	func stopGameSession() {
@@ -99,17 +86,11 @@ extension GameRoom: StreamDelegate {
 	func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
 		switch eventCode {
 		case .hasBytesAvailable:
-			//print("new message received")
 			readAvailableBytes(stream: aStream as! InputStream)
 		case .endEncountered:
-			print("new END message received")
 			stopGameSession()
-		case .errorOccurred:
-			print("error occurred")
-		case .hasSpaceAvailable:
-			print("has space available")
 		default:
-			print("some other event...")
+			print("Не удалось распознать сообщение")
 		}
 	}
 	
@@ -125,23 +106,11 @@ extension GameRoom: StreamDelegate {
 			}
 			print("numberOfBytesRead: " + String(numberOfBytesRead))
 			
-			// Construct the message object
 			if let message = processedMessageString(buffer: buffer, length: numberOfBytesRead) {
-				// Notify interested parties
 				delegate?.received(message: message)
 			} else {
-				print("не удалось сконструировать сообщение!!!")
-				if let str = (String(
-					bytesNoCopy: buffer,
-					length: numberOfBytesRead,
-					encoding: .utf8,
-					freeWhenDone: true)?.data(using: .utf8)!) {
-					print("строка:")
-					print(str)
-				} else {
-					print("не удалось преобразовать в строку сообщение!!!")
-				}
-				print(buffer)
+				print("Не удалось сконструировать сообщение")
+				stopGameSession()
 			}
 		}
 	}

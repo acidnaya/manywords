@@ -26,7 +26,7 @@ class TextFieldViewController: UIViewController, UITextViewDelegate
 				textView.isEditable = false
 				senderDelegate?.send(message: textView.text, type: "move")
 			}
-			return false // чтобы UITextView не добавлял дополнительную строку
+			return false
 		} else {
 			if (senderDelegate != nil) {
 				senderDelegate?.send(message: textView.text + text, type: "attempt")

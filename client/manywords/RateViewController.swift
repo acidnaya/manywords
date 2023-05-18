@@ -14,11 +14,6 @@ final class RateViewController : UIViewController {
 	let playedNameLabel = Label()
 	var playedLabel = Label()
 	
-	func initn(played: Int, wins: Int) {
-		winsLabel.text = String(wins)
-		playedLabel.text = String(played)
-	}
-	
 	private func setupHorisontalStack(views: [UIView]) -> UIStackView {
 		let stack = UIStackView(arrangedSubviews: views)
 		stack.axis = NSLayoutConstraint.Axis.horizontal
@@ -42,8 +37,9 @@ final class RateViewController : UIViewController {
 		view.backgroundColor = Theme.Colors.BackgroundColor
 		playedNameLabel.text = "Сыграно"
 		winsNameLabel.text = "Побед"
+		winsLabel.text = UserDefaults.standard.string(forKey: DefaultsKeys.wins)
+		playedLabel.text = UserDefaults.standard.string(forKey: DefaultsKeys.played)
 		setupStack()
-		//gameRoom.initn(gc: self)
 	}
 	
 	
@@ -53,7 +49,6 @@ final class RateViewController : UIViewController {
 		let newBackButton = UIBarButtonItem(title: "Назад", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.backAction(sender:)))
 		newBackButton.tintColor = Theme.Colors.AccentColor
 		self.navigationItem.leftBarButtonItem = newBackButton
-		//self.title = "C"
 	}
 	
 	@objc func backAction(sender: UIBarButtonItem) {

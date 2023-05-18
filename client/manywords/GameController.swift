@@ -11,7 +11,7 @@ import UIKit
 final class GameController: UIViewController, GameRoomDelegate {
 	let gameRoom = GameRoom()
 	let textView = TextFieldViewController()
-	var deviceId = UIDevice.current.identifierForVendor?.uuidString.components(separatedBy: "-")[0]
+	let deviceId = UserDefaults.standard.string(forKey: DefaultsKeys.username)
 	private var timerLabel = Label()
 	private var syllableLabel = Label()
 	var playerLabels = [Label](repeating: Label(), count: 6)
@@ -21,10 +21,6 @@ final class GameController: UIViewController, GameRoomDelegate {
 	var playerLabel3 = Label()
 	var playerLabel4 = Label()
 	var messageLabel = Label()
-	
-	func initn(id: String) {
-		deviceId = id
-	}
 	
 	private func setupTableView() {
 		playerLabels[0] = playerLabel0
@@ -44,8 +40,6 @@ final class GameController: UIViewController, GameRoomDelegate {
 	}
 	
 	private func setupLabelsStack() {
-		//setupTimerLabel()
-		//setupSyllableLabel()
 		syllableLabel.text = "Игра скоро начнется!"
 		syllableLabel.textColor = Theme.Colors.AccentColor
 		let verticalLabelsStack = UIStackView(arrangedSubviews: [timerLabel, syllableLabel])
@@ -67,9 +61,8 @@ final class GameController: UIViewController, GameRoomDelegate {
 	}
 	
 	private func setupView() {
-		gameRoom.initn(gc: self, id: deviceId ?? "default value")
+		gameRoom.initn(gc: self)
 		view.backgroundColor = Theme.Colors.BackgroundColor
-		//setupSyllableLabel()
 		setupLabelsStack()
 		setupTextView()
 		setupTableView()
@@ -128,10 +121,9 @@ final class GameController: UIViewController, GameRoomDelegate {
 			print("Переменная равна timer")
 			changeTimer(message: message)
 		case "end":
-			print("Переменная равна timer")
 			noPlayersFound()
 		default:
-			print("не удалось распознать число")
+			print("не удалось распознать команду")
 		}
 	}
 	
@@ -153,7 +145,11 @@ final class GameController: UIViewController, GameRoomDelegate {
 	}
 	
 	func end(message: Message) {
+		let p = UserDefaults.standard.integer(forKey: DefaultsKeys.played)
+		UserDefaults.standard.set(p + 1, forKey: DefaultsKeys.played)
 		if message.PlayerID == deviceId {
+			let w = UserDefaults.standard.integer(forKey: DefaultsKeys.wins)
+			UserDefaults.standard.set(w + 1, forKey: DefaultsKeys.wins)
 			winner()
 		} else {
 			loser()
@@ -176,6 +172,8 @@ final class GameController: UIViewController, GameRoomDelegate {
 	}
 	
 	func tie() {
+		let p = UserDefaults.standard.integer(forKey: DefaultsKeys.played)
+		UserDefaults.standard.set(p + 1, forKey: DefaultsKeys.played)
 		let alertController = UIAlertController(title: "Ничья", message: "Ваши силы оказались равны...", preferredStyle: .alert)
 		let okAction = UIAlertAction(title: "⚖️", style: .default) { (result : UIAlertAction) -> Void in
 			self.gameRoom.stopGameSession()
@@ -247,28 +245,8 @@ final class GameController: UIViewController, GameRoomDelegate {
 		if deviceId == message.PlayerID {
 			gameRoom.moveCounter += 1
 			textView.textView.isEditable = true
-			Task {
-				await waitAndMove(k: gameRoom.moveCounter)
-			}
 		} else {
 			textView.textView.isEditable = false
-		}
-	}
-	
-	
-	func waitAndMove(k: Int) async {
-		print(deviceId! + " move #" + String(k) + ": Запустили таймер на 5 сек")
-		let duration = UInt64(5 * 1_000_000_000)
-		do {
-			try await Task.sleep(nanoseconds: duration)
-			if !gameRoom.moveWasMade[k] {
-				print(deviceId! + " move #" + String(k) + ": Отправляем пустой ход")
-				gameRoom.send(message: textView.textView.text, type: "move")
-			} else {
-				print(deviceId! + " move #" + String(k) + ": Уже отправили нормальный ход.")
-			}
-		} catch {
-			print("Ошибка в ожидании, лол")
 		}
 	}
 	

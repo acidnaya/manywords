@@ -21,7 +21,6 @@ final class TextView: UITextView {
 	}
 
 	func setupTextView() {
-//		translatesAutoresizingMaskIntoConstraints = false
 		font = .systemFont(ofSize: Theme.Constants.FontSize, weight: .medium)
 		setWidth(300)
 		setHeight(Theme.Constants.ButtonHeight)

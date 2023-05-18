@@ -32,6 +32,36 @@ func (Message) constructEndMessage() (msg *Message) {
 	return message
 }
 
+func (Message) constructOkMessage() (msg *Message) {
+	var message = &Message{
+		EventType:    "ok",
+		PlayerID:     "",
+		GameID:       "",
+		OtherPlayers: "",
+		Syllable:     "",
+		MoveAttempt:  "",
+		MoveStatus:   "",
+		Time:         "",
+		Final:        "",
+	}
+	return message
+}
+
+func (Message) constructErrorMessage() (msg *Message) {
+	var message = &Message{
+		EventType:    "error",
+		PlayerID:     "",
+		GameID:       "",
+		OtherPlayers: "",
+		Syllable:     "",
+		MoveAttempt:  "",
+		MoveStatus:   "",
+		Time:         "",
+		Final:        "",
+	}
+	return message
+}
+
 func (Message) constructEmptyMove(id string) (msg *Message) {
 	var message = &Message{
 		EventType:    "move",
